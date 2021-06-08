@@ -27,13 +27,13 @@ public interface CowinClient {
                 "User-Agent: PostmanRuntime/7.26.10"
         })
         @GET("v2/appointment/sessions/public/calendarByDistrict")
-        Call<CowinResponse> calendarByDistrict(@Query("district_id") int districtId, @Query("date") String date);
+        Call<CowinResponseNext7Days> calendarByDistrict(@Query("district_id") int districtId, @Query("date") String date);
 
 	@Headers({
                 "Accept-Language: hi_IN",
                 "User-Agent: PostmanRuntime/7.26.10"
         })
         @GET("v2/appointment/sessions/public/calendarByPin")
-        Call<CowinResponse> calendarByPin(@Query("pincode") int districtId, @Query("date") String date);
+        Call<CowinResponseNext7Days> calendarByPin(@Query("pincode") int districtId, @Query("date") String date);
 }
 

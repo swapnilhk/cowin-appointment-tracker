@@ -48,9 +48,15 @@ public class CowinApointmrntTrackerConfig {
 		ret.add(new CalendarQuery(
 				"Pranali Bhosle",
 				District.PUNE,
-				session -> session.getMinAgeLimit() == 45 && session.getVaccine().equalsIgnoreCase(Constants.COVAXIN) && session.getAvailableCapacityDose2() > 0,
-				appointmentCalendar -> Arrays.asList(411027).contains(appointmentCalendar.getPincode()), 
-				"swapnilhk@gmail.com"));
+				session -> session.getMinAgeLimit() == 18 && session.getVaccine().equalsIgnoreCase(Constants.COVISHIELD) && session.getAvailableCapacityDose1() > 0,
+				appointmentCalendar -> Arrays.asList(412208, 411006, 411014, 412207, 412216, 412209, 412220).contains(appointmentCalendar.getPincode()), 
+				"swapnilhk@gmail.com", "leenakhade15@gmail.com"));
+		ret.add(new CalendarQuery(
+				"Monika Jadhav",
+				District.NASHIK,
+				session -> session.getMinAgeLimit() == 18 && session.getVaccine().equalsIgnoreCase(Constants.COVISHIELD) && session.getAvailableCapacityDose1() > 0,
+				appointmentCalendar -> Arrays.asList(420003).contains(appointmentCalendar.getPincode()) || appointmentCalendar.getPincode().toString().startsWith("422"), 
+				"swapnilhk@gmail.com", "leenakhade15@gmail.com"));
 		return ret;
 	}
 }

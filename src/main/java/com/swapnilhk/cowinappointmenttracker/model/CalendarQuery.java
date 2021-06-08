@@ -1,22 +1,23 @@
 package com.swapnilhk.cowinappointmenttracker.model;
 
 import java.util.function.Predicate;
+import java.util.Arrays;
 
 import lombok.Getter;
 
 @Getter
-public class QueryConfig {
+public class CalendarQuery {
 	private String name;
 	private District district;
-	private Integer pincode;
-	private Predicate<Appointment> query;
+	private Predicate<AppointmentNext7Days> query;
+	private List pincodes;
 	private String[] email;
 
-	public QueryConfig(String name, District district, Integer pincode, Predicate<Appointment> query, String...email) {
+	public QueryConfig(String name, District district, Predicate<AppointmentNext7Days> query, int[] pincodes, String...email) {
 		this.name = name;
 		this.district = district;
-		this.pincode = pincode;
 		this.query = query;
+		this.pincodes = Arrays.asList(pincodes);
 		this.email = email;
 	}
 }

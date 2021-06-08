@@ -19,10 +19,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import com.swapnilhk.cowinappointmenttracker.client.CowinClient;
 import com.swapnilhk.cowinappointmenttracker.exception.CowinAppointTrackerException;
 import com.swapnilhk.cowinappointmenttracker.model.CowinResponse;
-import com.swapnilhk.cowinappointmenttracker.model.CowinResponseNext7Days;
+//import com.swapnilhk.cowinappointmenttracker.model.CowinResponseNext7Days;
 import com.swapnilhk.cowinappointmenttracker.model.QueryConfig;
 import com.swapnilhk.cowinappointmenttracker.model.Appointment;
-import com.swapnilhk.cowinappointmenttracker.model.AppointmentNext7Days;
+//import com.swapnilhk.cowinappointmenttracker.model.AppointmentNext7Days;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -39,6 +39,9 @@ public class CowinAppointmentTracker {
 	
     	@Autowired
     	private List<QueryConfig> filters;
+
+	@Autowired
+        private List<CalendarQuery> calendarQuery;
     
 	private static final int TIME_BETWEEN_CALLS = 3000;
 	
@@ -62,7 +65,8 @@ public class CowinAppointmentTracker {
 	public void checkDailyAppointmentavAilibility() {
 		QueryConfig filter = filters.get(index);
 		logger.info("Checking for distrint {} on {}", filter.getDistrict(), dateToCheck);
-		Call<CowinResponse> res = cowinClient.findByDistrict(filter.getDistrict().getId(), dateToCheck);
+                logger.info("Checking for distrint {} for date {}", filter.getDistrict(), dateToCheck);
+                Call<CowinResponse> res = cowinClient.findByDistrict(filter.getDistrict().getId(), dateToCheck);
 		try {
 			Response<CowinResponse> r = res.execute();
 			List<Appointment> appointments = r.body().getSessions().stream().filter(filter.getQuery()).collect(Collectors.toList());
@@ -80,22 +84,17 @@ public class CowinAppointmentTracker {
 
 	@Scheduled(fixedDelay = TIME_BETWEEN_CALLS)
         public void checkWeeklyAppointmentavAilibility() {
-                QueryConfig filter = filters.get(index);
-		Call<CowinResponseNext7Days> res = null;
-		if(filter.getPincode() != null && !filter.getPincode().equals("")){
-			logger.info("Checking for pincode {} for week starting with {}", filter.getPincode(), dateToCheck);
-                        res = cowinClient.findCalendarPin(filter.getPincode(), dateToCheck);
-		}
-		else {
-                	logger.info("Checking for distrint {} for week starting with {}", filter.getDistrict(), dateToCheck);
-                	res = cowinClient.findCalendarDistrict(filter.getDistrict().getId(), dateToCheck);
-		}
+                CalendarQuery query = calendarQuery.get(index);
+                logger.info("Checking for distrint {} for week starting with {}", query.getDistrict(), dateToCheck);
+                Call<CowinResponseNext7Days> res = cowinClient.findCalendarByDistrict(query.getDistrict().getId(), dateToCheck);
 		try {
                         Response<CowinResponse> r = res.execute();
-                        List<Appointment> appointments = r.body().getSessions().stream().filter(filter.getQuery()).collect(Collectors.toList());
-                        if (!appointments.isEmpty()) {
-                                logger.info("Appointments available for distrint {} on {}. Sending mail...", filter.getDistrict(), dateToCheck);
-                                sendMail(filter.getDistrict().name(), dateToCheck, appointments, filter.getEmail());
+			List<AppointmentNext7Days> filteredCenters = r.getBody().getCenters().stream().filter(center -> query.getPincodes().contains(center.getPincode())).collect(Collectors.toList(i));
+			filteredCenters.getSessions().stream().forEcah( session -> {
+				query.getQuery().collect(Collectors.toList());
+                        if (!appointments.getSessions().isEmpty()) {
+                                logger.info("Appointments available. Details are as follows: {}. Sending mail...", appointments);
+                                sendMail(filter.getDistrict().name(), appointments, filters.getEmail());
                         } else {
                                 logger.info("No appointments available");
                         }
@@ -105,10 +104,28 @@ public class CowinAppointmentTracker {
                 index = (index + 1) % filters.size();
         }
 
+	private void sendMail(String city, List<AppointmentNext7Days> appointments, String...email) {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom("swapnilhk@localhost.com");
+                message.setTo(email);
+                message.setSubject(String.format("Appointment Available at %s", city));
+                StringBuilder b = new StringBuilder();
+                for (Appointment appointment : appointments) {
+			for(Session s: appointment.getSessions(){
+                        	b.append(String.format("Name: %s%nAddress: %s%nPin Code: %d%nAvailable Capacity Dose 1: %.2f%nAvailable Capacity Dose 2: %.2f%nVaccineType: %s%nDate: %s%nMinimum Age: %d%n%n",
+                                        appointment.getName(), appointment.getAddress(), appointment.getPincode(),
+                                        s.getAvailableCapacityDose1(), s.getAvailableCapacityDose2(), s.getVaccine(), s.getDate(),
+                                        s.getMinAgeLimit()));
+			}
+                }
+                message.setText(b.toString());
+                emailSender.send(message);
+        }
+
 	private void sendMail(String city, String date, List<Appointment> appointments, String...email) {
 		SimpleMailMessage message = new SimpleMailMessage(); 
-        message.setFrom("swapnilhk@localhost.com");
-        message.setTo(email); 
+        	message.setFrom("swapnilhk@localhost.com");
+        	message.setTo(email); 
 		message.setSubject(String.format("Appointment Available at %s", city));
 		StringBuilder b = new StringBuilder();
 		for (Appointment appointment : appointments) {
@@ -118,7 +135,7 @@ public class CowinAppointmentTracker {
 					appointment.getMinAgeLimit()));
 		}
 		message.setText(b.toString());
-        emailSender.send(message);
+        	emailSender.send(message);
 	}
 }
 

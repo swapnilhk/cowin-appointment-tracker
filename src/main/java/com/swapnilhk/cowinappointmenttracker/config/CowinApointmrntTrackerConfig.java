@@ -49,7 +49,6 @@ public class CowinApointmrntTrackerConfig {
 		ret.add(new QueryConfig(
 				"Pranali Bhosle",
 				District.PUNE,
-			        "",	
 				a -> a.getMinAgeLimit() == 18 
 				&& (a.getPincode().toString().startsWith("412208")) 
 				&& a.getVaccine().equalsIgnoreCase(Constants.COVISHIELD)
@@ -58,7 +57,6 @@ public class CowinApointmrntTrackerConfig {
 		ret.add(new QueryConfig(
 				"Monika Jadhav",
 				District.NASHIK, 
-				"",
 				a -> a.getMinAgeLimit() == 18 
 				&& (a.getPincode().toString().startsWith("422") || a.getPincode().toString().startsWith("420003"))
 				&& a.getVaccine().equalsIgnoreCase(Constants.COVISHIELD)
@@ -67,7 +65,6 @@ public class CowinApointmrntTrackerConfig {
 		ret.add(new QueryConfig(
 				"Saurabh Ambadkar",
 				District.NAGPUR, 
-				"",
 				a -> a.getMinAgeLimit() == 18 
 				&& a.getPincode().toString().startsWith("440")
 				&& a.getVaccine().equalsIgnoreCase(Constants.COVAXIN)
@@ -83,5 +80,20 @@ public class CowinApointmrntTrackerConfig {
                                 "swapnilhk@gmail.com", "atulsingh.yadav@hotmail.com"))i;*/
 		return ret;
 	}
+	
+	@Bean
+        public List<CalendarQuery> queryConfig(){
+                List<CalendarQuery> ret = new ArrayList<>();
+                ret.add(new Calendar(
+                                "Pranali Bhosle",
+                                District.PUNE,
+                                null,
+                                session -> session.getMinAgeLimit() == 18
+                                	&& session.getVaccine().equalsIgnoreCase(Constants.COVISHIELD)
+                                	&& session.getAvailableCapacityDose1() > 0,
+				new int[]{412208}
+                                "swapnilhk@gmail.com", "leenakhade15@gmail.com"));
+                return ret;
+        }
 }
 

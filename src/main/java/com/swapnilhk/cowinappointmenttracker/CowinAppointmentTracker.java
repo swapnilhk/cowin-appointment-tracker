@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,53 +33,47 @@ public class CowinAppointmentTracker {
 	private CowinClient cowinClient;
 	
 	@Autowired
-    private JavaMailSender emailSender;
+    	private JavaMailSender emailSender;
 	
-    @Autowired
-    private List<QueryConfig> filters;
+    	@Autowired
+    	private List<QueryConfig> filters;
     
-	private static final int DELAY_IN_MILLI_SECONDS = 12000;
+	private static final int TIME_BETWEEN_CALLS = 3000;
 	
-    private Logger logger = LoggerFactory.getLogger(CowinAppointmentTracker.class);
+    	private Logger logger = LoggerFactory.getLogger(CowinAppointmentTracker.class);
     
-    private final String dateToCheck;
+    	private String dateToCheck;
+   
+        private int index = 0;
+
+    	public CowinAppointmentTracker(){
+    		this.dateToCheck = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+    	}
     
-    public CowinAppointmentTracker(){
-    	GregorianCalendar gc = new GregorianCalendar();
-    	gc.add(Calendar.DATE, 1);
-    	this.dateToCheck = new SimpleDateFormat("dd-MM-yyyy").format(gc.getTime());
-    }
-    
-	@Scheduled(fixedDelay = DELAY_IN_MILLI_SECONDS)
+	@Scheduled(cron = "0 0 0 * * *")
+	public void changeDate(){
+		this.dateToCheck = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+		logger.info("Changing date. new date: {}", this.dateToCheck);
+	}
+
+	@Scheduled(fixedDelay = TIME_BETWEEN_CALLS)
 	public void checkAppointmentavAilibility() {
-		for (QueryConfig filter : filters) {
-			logger.info("Checking for distrint {} on {}", filter.getDistrict(), dateToCheck);
-			Call<CowinResponse> res = cowinClient.findByDistrict(filter.getDistrict().getId(), dateToCheck);
-			try {
-				Response<CowinResponse> r = res.execute();
-				List<Appointment> appointments = r.body().getSessions().stream().filter(filter.getQuery()).collect(Collectors.toList());
-				if (!appointments.isEmpty()) {
-					logger.info("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n",
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(), appointments.get(0).getPincode(),
-							appointments.get(0).getPincode(),
-							appointments.get(0).getPincode());
-					logger.info("Appointments available for distrint {} on {}. Sending mail...", filter.getDistrict(), dateToCheck);
-					sendMail(filter.getDistrict().name(), dateToCheck, appointments, filter.getEmail());
-				} else {
-					logger.info("No appointments available");
-				}
-			} catch (IOException e) {
-				throw new CowinAppointTrackerException("Exception occured while calling cowin API", e);
+		QueryConfig filter = filters.get(index);
+		logger.info("Checking for distrint {} on {}", filter.getDistrict(), dateToCheck);
+		Call<CowinResponse> res = cowinClient.findByDistrict(filter.getDistrict().getId(), dateToCheck);
+		try {
+			Response<CowinResponse> r = res.execute();
+			List<Appointment> appointments = r.body().getSessions().stream().filter(filter.getQuery()).collect(Collectors.toList());
+			if (!appointments.isEmpty()) {
+				logger.info("Appointments available for distrint {} on {}. Sending mail...", filter.getDistrict(), dateToCheck);
+				sendMail(filter.getDistrict().name(), dateToCheck, appointments, filter.getEmail());
+			} else {
+				logger.info("No appointments available");
 			}
+		} catch (IOException e) {
+			throw new CowinAppointTrackerException("Exception occured while calling cowin API", e);
 		}
+		index = (index + 1) % filters.size(); 
 	}
 	
 	private void sendMail(String city, String date, List<Appointment> appointments, String...email) {

@@ -48,7 +48,8 @@ public class CowinApointmrntTrackerConfig {
 		List<QueryConfig> ret = new ArrayList<>();
 		ret.add(new QueryConfig(
 				"Pranali Bhosle",
-				District.PUNE, 
+				District.PUNE,
+			        "",	
 				a -> a.getMinAgeLimit() == 18 
 				&& (a.getPincode().toString().startsWith("412208")) 
 				&& a.getVaccine().equalsIgnoreCase(Constants.COVISHIELD)
@@ -57,6 +58,7 @@ public class CowinApointmrntTrackerConfig {
 		ret.add(new QueryConfig(
 				"Monika Jadhav",
 				District.NASHIK, 
+				"",
 				a -> a.getMinAgeLimit() == 18 
 				&& (a.getPincode().toString().startsWith("422") || a.getPincode().toString().startsWith("420003"))
 				&& a.getVaccine().equalsIgnoreCase(Constants.COVISHIELD)
@@ -65,6 +67,7 @@ public class CowinApointmrntTrackerConfig {
 		ret.add(new QueryConfig(
 				"Saurabh Ambadkar",
 				District.NAGPUR, 
+				"",
 				a -> a.getMinAgeLimit() == 18 
 				&& a.getPincode().toString().startsWith("440")
 				&& a.getVaccine().equalsIgnoreCase(Constants.COVAXIN)

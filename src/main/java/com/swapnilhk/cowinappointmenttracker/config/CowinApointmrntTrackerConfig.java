@@ -1,6 +1,7 @@
 package com.swapnilhk.cowinappointmenttracker.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -44,12 +45,13 @@ public class CowinApointmrntTrackerConfig {
 	@Bean
 	public List<CalendarQuery> calendarQueryConfig() {
 		List<CalendarQuery> ret = new ArrayList<>();
-		ret.add(new CalendarQuery("Pranali Bhosle", District.PUNE,
-				session -> session.getMinAgeLimit() == 45 && session.getVaccine().equalsIgnoreCase(Constants.COVAXIN)
-						&& session.getAvailableCapacityDose2() > 0,
-				new int[] { 411027 }, "swapnilhk@gmail.com"));
+		ret.add(new CalendarQuery(
+				"Pranali Bhosle",
+				District.PUNE,
+				session -> session.getMinAgeLimit() == 45 && session.getVaccine().equalsIgnoreCase(Constants.COVAXIN) && session.getAvailableCapacityDose2() > 0,
+				appointmentCalendar -> Arrays.asList(411027).contains(appointmentCalendar.getPincode()), 
+				"swapnilhk@gmail.com"));
 		return ret;
 	}
 }
-
 

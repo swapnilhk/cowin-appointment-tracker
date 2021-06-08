@@ -64,7 +64,7 @@ public class CowinAppointmentTracker {
 			Response<CowinCalendarResponse> r = res.execute();
 			// Filter centers by pincode
 			List<AppointmentCalendar> filteredCenters = r.body().getCenters().stream()
-					.filter(center -> query.getPincodes().contains(center.getPincode())).collect(Collectors.toList());
+					.filter(query.getCalendarQuery()).collect(Collectors.toList());
 			// Filter sessions according to calendar query criteria
 			filteredCenters.stream().forEach(center -> {
 				center.setSessions(center.getSessions().stream().filter(query.getQuery()).collect(Collectors.toList()));

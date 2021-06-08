@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class Appointment {
+public class AppointmentCalendar {
 	@JsonProperty("center_id")
 	Integer centerId;
 	@JsonProperty("name")
@@ -32,23 +32,10 @@ public class Appointment {
 	Integer longitude;
 	@JsonProperty("fee_type")
 	String feeType;
-	@JsonProperty("session_id")
-	String sessionId;
-	@JsonProperty("date")
-	String date;
-	@JsonProperty("available_capacity_dose1")
-	Double availableCapacityDose1;
-	@JsonProperty("available_capacity_dose2")
-	Double availableCapacityDose2;
-	@JsonProperty("available_capacity")
-	Double availableCapacity;
-	@JsonProperty("fee")
-	String fee;
-	@JsonProperty("min_age_limit")
-	Integer minAgeLimit;
-	@JsonProperty("vaccine")
-	String vaccine;
-	@JsonProperty("slots")
-	List<String> slots;
+	@JsonProperty("sessions")
+	List<Session> sessions;
+	@JsonProperty("vaccine_fees")
+	List<VaccineFees> vaccineFees;
 }
+
 

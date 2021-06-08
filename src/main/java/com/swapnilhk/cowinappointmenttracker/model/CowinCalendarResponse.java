@@ -7,8 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class CowinResponse {
-	@JsonProperty("sessions")
-	List<Appointment> sessions;
+public class CowinCalendarResponse {
+	@JsonProperty("centers")
+	List<AppointmentCalendar> centers;
 }
+
 

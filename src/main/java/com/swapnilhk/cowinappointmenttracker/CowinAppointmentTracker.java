@@ -3,8 +3,11 @@ package com.swapnilhk.cowinappointmenttracker;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.Date;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,13 +48,19 @@ public class CowinAppointmentTracker {
 
 	private int index = 0;
 
+	private Set<Session> sessionCache = new HashSet<>();
+	
 	public CowinAppointmentTracker() {
-		this.dateToCheck = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+		SimpleDateFormat isoFormat = new SimpleDateFormat("dd-MM-yyyy");
+		isoFormat.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+		this.dateToCheck = isoFormat.format(new Date());
 	}
 
 	@Scheduled(cron = "0 0 0 * * *")
 	public void changeDate() {
-		this.dateToCheck = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+		SimpleDateFormat isoFormat = new SimpleDateFormat("dd-MM-yyyy");
+		isoFormat.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+		this.dateToCheck = isoFormat.format(new Date());
 		logger.info("Changing date. new date: {}", this.dateToCheck);
 	}
 
@@ -69,8 +78,13 @@ public class CowinAppointmentTracker {
 			filteredCenters.stream().forEach(center -> {
 				center.setSessions(center.getSessions().stream().filter(query.getQuery()).collect(Collectors.toList()));
 			});
-			// Filters centers without any available sessions with given filter criteria
-			filteredCenters = filteredCenters.stream().filter(center -> !center.getSessions().isEmpty()).collect(Collectors.toList());
+			
+			// Remove Already Notified Data
+			filteredCenters = removeAlreadyNotifiedData(filteredCenters);
+			
+			// Remove centers with empty sessions
+			filteredCenters.removeIf(center -> center.getSessions().isEmpty());
+			
 			if (!filteredCenters.isEmpty()) {
 				logger.info("Appointments available. Details are as follows: {}. Sending mail...", filteredCenters);
 				sendMail(query.getDistrict().name(), filteredCenters, query.getEmail());
@@ -83,6 +97,14 @@ public class CowinAppointmentTracker {
 		index = (index + 1) % calendarQuery.size();
 	}
 	
+
+	private List<AppointmentCalendar> removeAlreadyNotifiedData(List<AppointmentCalendar> filteredCenters) {
+		for(AppointmentCalendar center: filteredCenters) {
+			center.getSessions().removeIf(session -> sessionCache.contains(session));
+			sessionCache.addAll(center.getSessions());
+		}
+		return filteredCenters;
+	}
 
 	private void sendMail(String city, List<AppointmentCalendar> appointments, String... email) {
 		SimpleMailMessage message = new SimpleMailMessage();
@@ -104,4 +126,3 @@ public class CowinAppointmentTracker {
 		emailSender.send(message);}
 
 }
-
